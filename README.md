@@ -2,7 +2,7 @@ This plugin provides completions for [mx](https://github.com/graalvm/mx); a comm
 It's meant to improve the usual workflow `build unittest benchmark ...` ease discovery and provide handy aliases.
 
 # Features 
-  - [X] [mx aliases](./_mx)
+  - [X] [mx aliases](./mx.plugin.zsh)
   - [X] sub-command completion
   - [ ] [WIP] `mx benchmmark` completions
 
