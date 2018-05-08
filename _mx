@@ -1,0 +1,86 @@
+#compdef mx
+
+# mx [global options] command [command options]
+
+# main dispatcher
+_mx() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    # options for passing to _arguments: mx benchmark
+    typeset -a _mx_opts_global
+    _mx_opts_global=(
+        '-v[enable verbose output]'
+        '-V[enable VERY verbose output]'
+        '--no-warning[disable warning messages]'
+        '-y[answer "y" to all questions asked]'
+        '-n[answer "n" to all questions asked]'
+        '(-p --primary-suite-path)'{-p,--primary-suite-path}'set the primary suite directory'
+        '--dbg[make Java processes wait on <port> for a debugger]: :_guard "[[\:digit\:]]#" "PORT"' \
+        '-d[alias for "-dbg 8000"]'
+        '--backup-modified[backup generated files if they pre-existed and are modified]'
+        '--jacoco[instruments selected classes using JaCoCo]:jacoco:(off on append)'
+        '--kill-with-sigquit[send sigquit first before killing child processes]'
+        '--primary[limit command to primary suite]'
+        '--no-download-progress[disable download progress meter]'
+        '--version[print version and exit]'
+        '--mx-tests[load mxtests suite (mx debugging)]'
+        '--version-conflict-resolution=[resolution mechanism used when a suite is imported with different versions]:resolution:(suite none latest latest_all ignore)'
+        '(-c --max-cpus)'{-c,--max-cpus}'[the maximum number of cpus to use during build]:number'
+        '--strip-jars[Produce and use stripped jars in all mx commands.]'
+        '--timeout[timeout (in seconds) for command]:seconds'
+        '--ptimeout[timeout (in seconds) for subprocesses]:seconds'
+        '--gdb[alias for --vmprefix "gdb --args"]'
+        '--lldb[alias for --vmprefix "lldb --"]'
+    )
+
+    _mx_commands() {
+        # options for passing to _arguments: main mx commands
+        typeset -a _commands
+        _commands=(
+            'benchmark:run benchmark suite with given name'
+            'build:builds the artifacts of one or more dependencies'
+            'checkstyle:run Checkstyle on the Java sources'
+            'clean:remove all class files, images, and executables'
+            'eclipseformat:run the Eclipse Code Formatter on the Java sources'
+            'eclipseinit:(re)generate Eclipse project configurations and working sets'
+            'envs:print environment variables and their values'
+            'findbugs:run FindBugs against non-test Java projects'
+            'gate:run the tests used to validate a push'
+            'help:show detailed help for mx or a given command'
+            'ideclean:remove all IDE project configurations'
+            'ideinit:(re)generate IDE project configurations'
+            'intellijinit:(re)generate IntelliJ project configurations'
+            'netbeansinit:(re)generate NetBeans project configurations'
+            'unittest:run the JUnit tests'
+            'update:update mx to the latest version'
+            'version:print mx version'
+        )
+        _describe 'command' _commands
+    }
+
+    _arguments \
+        "$_mx_opts_global[@]" \
+        '1: :_mx_commands' \
+        '*:: :->command_args'
+
+    case $state in
+        command_args)
+          case $words[1] in
+            help)
+                _arguments \
+                    '1: :_mx_commands' \
+
+            ;;
+
+            # Add mx commands here
+
+          esac
+
+        ;;
+    esac
+
+} # end _mx
+
+# Run the main dispatcher
+_mx "$@"
