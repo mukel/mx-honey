@@ -6,30 +6,49 @@
 _mx() {
     local curcontext="$curcontext" state line
     typeset -A opt_args
-
-    # options for passing to _arguments: mx benchmark
-    typeset -a _mx_opts_global
-    _mx_opts_global=(
+    
+    # options for passing to _arguments: mx -
+    typeset -a _mx_optional_arguments
+    _mx_optional_arguments=(
         '-v[enable verbose output]'
         '-V[enable VERY verbose output]'
         '--no-warning[disable warning messages]'
-        '-y[answer "y" to all questions asked]'
-        '-n[answer "n" to all questions asked]'
-        '(-p --primary-suite-path)'{-p,--primary-suite-path}'set the primary suite directory'
-        '--dbg[make Java processes wait on <port> for a debugger]: :_guard "[[\:digit\:]]#" "PORT"' \
+        "-y[answer 'y' to all questions asked]"
+        "-n[answer 'n' to all questions asked]"
+        '(-p --primary-suite-path)'{-p,--primary-suite-path}'=[set the primary suite directory]:path:_files -/'
+        '--dbg=[make Java processes wait on <port> for a debugger]:port:'
         '-d[alias for "-dbg 8000"]'
+        '--attach=[Connect to existing server running at \[<address>:\]<port>]:host\:port:'
         '--backup-modified[backup generated files if they pre-existed and are modified]'
-        '--jacoco[instruments selected classes using JaCoCo]:jacoco:(off on append)'
+        '--cp-pfx=[class path prefix]:arg:'
+        '--cp-sfx=[class path suffix]:arg:'
+        '-J-[Java VM arguments (e.g. "-J-dsa")]:arg:'
+        '--J @-[Java VM arguments (e.g. "--J @-dsa")]:args:'
+        '-P-[prefix Java VM arguments (e.g. "-P-dsa")]:arg:'
+        '--Jp @-[prefix Java VM arguments (e.g. --Jp @-dsa)]:args:'
+        '-A[suffix Java VM arguments (e.g. "-A-dsa")]:arg:'
+        '--Ja @-[suffix Java VM arguments (e.g. --Ja @-dsa)]:args:'
+        '--user-home=[users home directory]:path:_files -/'
+        '--java-home=[primary JDK directory (must be JDK 7 or later)]:path:_files -/'
+        '--jacoco=[instruments selected classes using JaCoCo]: :(off on append)'
+        '--extra-java-homes=[secondary JDK directories separated by ":"]:paths:_dir_list'
+        '--strict-compliance[observe Java compliance for projects that set it explicitly]'
+        '--ignore-project[name of project to ignore]:name:'
         '--kill-with-sigquit[send sigquit first before killing child processes]'
+        '--suite[limit command to the given suite]:name:'
+        '--suitemodel[mechanism for locating imported suites]:arg:'
         '--primary[limit command to primary suite]'
+        '(--dy --dynamicimports)'{--dy,--dynamicimports}'=[dynamically import suite <name>]:name:'
         '--no-download-progress[disable download progress meter]'
         '--version[print version and exit]'
         '--mx-tests[load mxtests suite (mx debugging)]'
-        '--version-conflict-resolution=[resolution mechanism used when a suite is imported with different versions]:resolution:(suite none latest latest_all ignore)'
-        '(-c --max-cpus)'{-c,--max-cpus}'[the maximum number of cpus to use during build]:number'
+        '--jdk <tag:compliance>[JDK to use for the "java" command]'
+        '--version-conflict-resolution=[resolution mechanism used when a suite is imported with different versions]: :(suite none latest latest_all ignore)'
+        '(-c --max-cpus)'{-c,--max-cpus}'=[the maximum number of cpus to use during build]:cpus:'
         '--strip-jars[Produce and use stripped jars in all mx commands.]'
-        '--timeout[timeout (in seconds) for command]:seconds'
-        '--ptimeout[timeout (in seconds) for subprocesses]:seconds'
+        '--timeout=[timeout (in seconds) for command]:secs:'
+        '--ptimeout=[timeout (in seconds) for subprocesses]:secs:'
+        '--vmprefix[prefix for running the VM (e.g. "gdb --args")]:prefix:'
         '--gdb[alias for --vmprefix "gdb --args"]'
         '--lldb[alias for --vmprefix "lldb --"]'
     )
@@ -60,7 +79,7 @@ _mx() {
     }
 
     _arguments \
-        "$_mx_opts_global[@]" \
+        "$_mx_optional_arguments[@]" \
         '1: :_mx_commands' \
         '*:: :->command_args'
 
