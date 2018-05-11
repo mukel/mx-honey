@@ -3,8 +3,9 @@ It's meant to improve the usual workflow `build unittest benchmark ...` ease dis
 
 # Features 
   - [X] [mx aliases](./mx.plugin.zsh)
+  - [X] mx global-options
   - [X] sub-command completion
-  - [ ] [WIP] `mx benchmmark` completions
+  - [ ] [WIP] `mx benchmark` completions
 
 # Manual install
 ```bash
