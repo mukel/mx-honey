@@ -6,7 +6,9 @@
 _mx() {
     local curcontext="$curcontext" state line
     typeset -A opt_args
-    
+
+    local dynamic_imports
+
     # options for passing to _arguments: mx -
     typeset -a _mx_optional_arguments
     _mx_optional_arguments=(
@@ -53,6 +55,107 @@ _mx() {
         '--lldb[alias for --vmprefix "lldb --"]'
     )
 
+    # options for passing to _arguments: mx benchmark <suite:benchmark> -
+    typeset -a _mx_benchmark_options_arguments
+    _mx_benchmark_options_arguments=(
+        '--results-file=[Path to JSON output file with benchmark results.]:results_file:_files'
+        '--machine-name=[Abstract name of the target machine.]:machine_name:'
+        '--machine-node=[Machine node the benchmark is executed on.]:machine_node:'
+        '--triggering-suite=[Name of the suite that triggered this benchmark, used to extract commit info of the corresponding repo.]:triggering_suite:'
+        '--ignore-suite-commit-info=[A comma-separated list of suite dependencies whose commit info must not be included.]:ignore_suite_commit_info:'
+        '(-)--list[Print the list of all available benchmark suites or all benchmarks available in a suite.]'
+        '--[Specify benchmark args. e.g. -- --keep-scratch]'
+    )
+
+    # options for passing to _arguments: mx benchmark <suite:benchmark> -- -
+    typeset -a _mx_benchmark_suite_options_arguments
+    _mx_benchmark_suite_options_arguments=(
+        '*--[Specify benchmark suite args. e.g. -- -n 5]' # * allows to have 2 -- arguments
+        '--jmh-jar=[JMR jar file]:jmh_jar:_files'
+        '--jmh-name=:jmh_name:'
+        '--keep-scratch[Do not delete scratch directory after benchmark execution.]'
+        '--no-scratch[Do not execute benchmark in scratch directory.]'
+    )
+
+    _mx_benchmark_caching_policy() {
+        # Rebuild if cache is older than 24 hours.
+        local -a oldp
+        oldp=( "$1"(Nmh+24) )
+        (( $#oldp ))
+    }
+
+    # mx <mx-options> benchmark suite:bench <benchmark-options> -- <suite-options> -- <extra-options>
+    # - Completions are cached for 24 hours
+    # - Supports dynamic imports    
+    _mx_benchmark() {
+        local context state state_descr line
+        typeset -A opt_args
+
+        _arguments -C \
+            '(- 1)'{-h,--help} \
+            '(- 1)--list[Print the list of all available benchmark suites.]' \
+            ': :->mx_benchmark_suite' \
+            '*:: :->mx_benchmark_options'
+
+        case $state in
+            mx_benchmark_suite)
+                # completes suite:bench
+
+                local _suite=""
+                if compset -P 1 '*:'; then
+                    _suite=${IPREFIX%%:*}
+                fi
+
+
+                local _results _mx_benchmark_cache="mx/benchmark/${PWD##*/}/"
+                if [ -n "$_suite" ] ; then
+                    _mx_benchmark_cache+="$_suite"
+                else
+                    _mx_benchmark_cache+="suites"
+                fi
+
+                local dy_param=""
+                if [ -n "$dynamic_imports" ] ; then
+                    dy_param="--dy=$dynamic_imports"
+                    # dynamic imports may add bench-suites
+                    _mx_benchmark_cache+="#$(echo $dynamic_imports | sha1sum | cut -f1 -d " ")"
+                fi
+
+                zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+                [[ -z "$update_policy" ]] && zstyle ":completion:${curcontext}:" cache-policy _mx_benchmark_caching_policy
+
+                unset _results
+                if ( [[ ${+_results} -eq 0 ]] || _cache_invalid $_mx_benchmark_cache ) \
+                    && ! _retrieve_cache $_mx_benchmark_cache; then
+                    _results=(${${(f)"$(_call_program suite-benchmark mx $dy_param benchmark $_suite --list | grep -vE '^($|([[:blank:]]{2,}-)|\w)' | tr -d '  ')"}})
+
+                    # TODO(peterssen): Handle suites without :bench
+                    [[ $#_results -gt 0 ]] && _store_cache $_mx_benchmark_cache _results
+                fi
+
+                if [[ -n "$_suite" ]]; then
+                    compadd $_results
+                else
+                    compadd -S ":" $_results
+                fi
+            ;;
+
+            mx_benchmark_options)
+                dashdash=0
+                for ((i = (($CURRENT - 1)); i > 1 ; i--)); do
+                    if [[ $words[$i] == -- ]] ; then
+                        ((dashdash++))
+                    fi
+                done
+                case $dashdash in
+                    0) _arguments "$_mx_benchmark_options_arguments[@]" ;;
+                    1) _arguments "$_mx_benchmark_suite_options_arguments[@]" ;;
+                esac
+            ;;
+
+        esac
+    }
+
     _mx_commands() {
         # options for passing to _arguments: main mx commands
         typeset -a _commands
@@ -83,14 +186,13 @@ _mx() {
         '1: :_mx_commands' \
         '*:: :->command_args'
 
+    dynamic_imports=${(v)opt_args[(i)--dy|--dynamicimports]}
+
     case $state in
         command_args)
           case $words[1] in
-            help)
-                _arguments \
-                    '1: :_mx_commands' \
-
-            ;;
+            help) _arguments '1: :_mx_commands' ;;
+            benchmark) _mx_benchmark ;;
 
             # Add mx commands here
 
