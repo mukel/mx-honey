@@ -44,7 +44,7 @@ _mx() {
         '--no-download-progress[disable download progress meter]'
         '--version[print version and exit]'
         '--mx-tests[load mxtests suite (mx debugging)]'
-        '--jdk <tag:compliance>[JDK to use for the "java" command]'
+        '--jdk=[<tag\:compliance> JDK to use for the "java" command]:tag_compliance:'
         '--version-conflict-resolution=[resolution mechanism used when a suite is imported with different versions]: :(suite none latest latest_all ignore)'
         '(-c --max-cpus)'{-c,--max-cpus}'=[the maximum number of cpus to use during build]:cpus:'
         '--strip-jars[Produce and use stripped jars in all mx commands.]'
