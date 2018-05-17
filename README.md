@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="600" src="https://cdn.rawgit.com/mukel/mx-honey/demo/demo.svg">
+</p>
+
 This plugin provides completions for [mx](https://github.com/graalvm/mx); a command-line tool used for the development of Graal projects.
 It's meant to improve the usual workflow `build unittest benchmark ...` ease discovery and provide handy aliases.
 
@@ -5,7 +9,7 @@ It's meant to improve the usual workflow `build unittest benchmark ...` ease dis
   - [X] [mx aliases](./mx.plugin.zsh)
   - [X] mx global-options
   - [X] sub-command completion
-  - [ ] [WIP] `mx benchmark` completions
+  - [X] `mx benchmark` completions
 
 # Manual install
 ```bash
