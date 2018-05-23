@@ -86,7 +86,7 @@ _mx() {
 
     # mx <mx-options> benchmark suite:bench <benchmark-options> -- <suite-options> -- <extra-options>
     # - Completions are cached for 24 hours
-    # - Supports dynamic imports    
+    # - Supports dynamic imports
     _mx_benchmark() {
         local context state state_descr line
         typeset -A opt_args
@@ -156,6 +156,18 @@ _mx() {
         esac
     }
 
+    # mx makegraaljdk [-h] [-f] [-a <path>] [-b] <path>
+    _mx_makegraaljdk() {
+        local context state state_descr line
+        typeset -A opt_args
+        _arguments \
+            '1: :_files -/' \
+            '(-)'{-h,--help}'[show this help message and exit]' \
+            '(-f --force)'{-f,--force}'[overwrite existing GraalJDK]' \
+            '(-a --archive)'{-a,--archive}'=[<path> name of archive to create]:archive:_files' \
+            '(-b --bootstrap)'{-b,--bootstrap}'[execute a bootstrap of the created GraalJDK]'
+    }
+
     _mx_commands() {
         # options for passing to _arguments: main mx commands
         typeset -a _commands
@@ -173,6 +185,7 @@ _mx() {
             'ideclean:remove all IDE project configurations'
             'ideinit:(re)generate IDE project configurations'
             'intellijinit:(re)generate IntelliJ project configurations'
+            'makegraaljdk:make a JDK with Graal as the default top level JIT'
             'netbeansinit:(re)generate NetBeans project configurations'
             'unittest:run the JUnit tests'
             'update:update mx to the latest version'
@@ -193,6 +206,8 @@ _mx() {
           case $words[1] in
             help) _arguments '1: :_mx_commands' ;;
             benchmark) _mx_benchmark ;;
+
+            makegraaljdk) _mx_makegraaljdk ;;
 
             # Add mx commands here
 
