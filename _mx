@@ -168,6 +168,39 @@ _mx() {
             '(-b --bootstrap)'{-b,--bootstrap}'[execute a bootstrap of the created GraalJDK]'
     }
 
+    # options for passing to _arguments: mx jaotc <options>
+    typeset -a _mx_jaotc_options_arguments
+    _mx_jaotc_options_arguments=(
+        '--output=[<file> Output file name]:output_file:_files'
+        '--class-name=[<class names> List of classes to compile]'
+        '--jar=[<jarfiles> List of jar files to compile]:jars:_files -f *.jar'
+        '--module=[<modules> List of modules to compile]'
+        '--directory=[<dirs> List of directories where to search for files to compile]:directory:_dir_list'
+        '--search-path=[<dirs> List of directories where to search for specified files]:search_path:_dir_list'
+        '--compile-commands=[<file> Name of file with compile commands]:compile_commands:_files'
+        '--compile-for-tiered[Generate profiling code for tiered compilation]'
+        '--compile-with-assertions[Compile with java assertions]'
+        '--compile-threads=[<number> Number of compilation threads to be used]:compile_threads:'
+        '--ignore-errors[Ignores all exceptions thrown during class loading]'
+        '--exit-on-error[Exit on compilation errors]'
+        '--info[Print information during compilation]'
+        '--verbose[Print verbose information]'
+        '--debug[Print debug information]'
+        '(-)'{-\?,-h,--help}'[Print this help message]'
+        '(-)--version[Version information]'
+        '--linker-path=[Full path to linker executable]:linker_path:_files'
+        '*-J-[Pass <flag> directly to the runtime system (e.g. "-J-dsa")]:arg:'
+    )
+
+    # mx jaotc [-h] [-f] [-a <path>] [-b] <path>
+    _mx_jaotc() {
+        local context state state_descr line
+        typeset -A opt_args
+        _arguments -C \
+            "$_mx_jaotc_options_arguments[@]" \
+            ':: :_files'
+    }
+
     _mx_commands() {
         # options for passing to _arguments: main mx commands
         typeset -a _commands
@@ -185,6 +218,7 @@ _mx() {
             'ideclean:remove all IDE project configurations'
             'ideinit:(re)generate IDE project configurations'
             'intellijinit:(re)generate IntelliJ project configurations'
+            'jaotc:run AOT compiler'
             'makegraaljdk:make a JDK with Graal as the default top level JIT'
             'netbeansinit:(re)generate NetBeans project configurations'
             'unittest:run the JUnit tests'
@@ -208,6 +242,8 @@ _mx() {
             benchmark) _mx_benchmark ;;
 
             makegraaljdk) _mx_makegraaljdk ;;
+
+            jaotc) _mx_jaotc ;;
 
             # Add mx commands here
 
